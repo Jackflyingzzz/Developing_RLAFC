@@ -144,7 +144,7 @@ class Env2DCylinderModified(gym.Env):
             if self.output_params['single_input'] == True:
                 self.state_shape = 1
             else:
-                self.state_shape = 2* len(self.output_params["locations"])
+                self.state_shape = len(self.output_params["locations"])
 
         elif self.output_params["probe_type"] == 'velocity':
             self.state_shape = 2 * len(self.output_params["locations"])
@@ -154,6 +154,8 @@ class Env2DCylinderModified(gym.Env):
                 self.state_shape = self.state_shape + 1
             else:
                 self.state_shape = self.state_shape + 2
+        
+        self.state_shape = self.state_shape*2
 
         self.action_space = gym.spaces.Box(shape=(self.action_shape,), low=float(self.optimization_params["min_value_jet_MFR"]), high=float(self.optimization_params["max_value_jet_MFR"]))
         self.observation_space = gym.spaces.Box(shape=(self.state_shape,), low=-np.inf, high=np.inf)
@@ -897,7 +899,9 @@ class Env2DCylinderModified(gym.Env):
             #print(next_state["obs"])
 
         self.episode_number += 1
-
+        next_state = np.append(next_state, next_state)
+        
+        
         return next_state
 
     def step(self, actions=None):
@@ -965,6 +969,9 @@ class Env2DCylinderModified(gym.Env):
             self.drag = self.drag_probe.sample(self.u_, self.p_)
             self.lift = self.lift_probe.sample(self.u_, self.p_)
             self.recirc_area = self.area_probe.sample(self.u_, self.p_)
+            
+            if crrt_control_nbr == int(self.number_steps_execution/2):
+                self.probes_values_inter = self.probes_values
 
             # Write to the history buffers
             self.write_history_parameters()
@@ -988,7 +995,7 @@ class Env2DCylinderModified(gym.Env):
         # If observations is based on raw pressure probes    
         else:
             next_state = np.transpose(np.array(self.probes_values))
-            
+            next_state_inter = np.transpose(np.array(self.probes_values_inter))
             # Update past observations if previous history is included in state
             for n_hist in range(self.optimization_params["num_steps_in_pressure_history"]-1):
                 key = "prev_obs_" + str(n_hist + 1)
@@ -997,7 +1004,7 @@ class Env2DCylinderModified(gym.Env):
         # Update action history buffer if action history is included in state
         if self.output_params["include_actions"]:
             next_state = np.append(next_state, action)
-
+            next_state_inter = np.append(next_state_inter, action)
             for n_hist in range(self.optimization_params["num_steps_in_pressure_history"]-1):
                 key = "prev_act_" + str(n_hist + 1)
                 next_state.update({key : self.history_actions[n_hist]})
@@ -1005,6 +1012,7 @@ class Env2DCylinderModified(gym.Env):
             # Append last action to action history buffer
             self.history_actions.appendleft(actions)
 
+        next_state = np.append(next_state, next_state_inter)
 
         if self.verbose > 2:
             print(next_state["obs"])
