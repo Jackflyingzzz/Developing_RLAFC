@@ -1,0 +1,7 @@
+
+WARNING: Do not use these anaconda modules for new activities
+         Use a personal anaconda installation instead
+         module load anaconda3/personal
+         https://tinyurl.com/ydx9g7c2 for more details
+
+=>> PBS: job killed: walltime 518465 exceeded limit 518400
