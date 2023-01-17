@@ -144,7 +144,7 @@ class Env2DCylinderModified(gym.Env):
             if self.output_params['single_input'] == True:
                 self.state_shape = 1
             else:
-                self.state_shape = len(self.output_params["locations"])
+                self.state_shape = 2* len(self.output_params["locations"])
 
         elif self.output_params["probe_type"] == 'velocity':
             self.state_shape = 2 * len(self.output_params["locations"])
