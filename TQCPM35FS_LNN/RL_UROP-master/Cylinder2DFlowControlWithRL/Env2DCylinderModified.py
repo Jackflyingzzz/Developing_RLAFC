@@ -1012,7 +1012,7 @@ class Env2DCylinderModified(gym.Env):
             # Append last action to action history buffer
             self.history_actions.appendleft(actions)
 
-        next_state = np.append(next_state, next_state_inter)
+        next_state = np.append(next_state_inter, next_state)
 
         if self.verbose > 2:
             print(next_state["obs"])
